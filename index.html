@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Путь в мир Кореи — книга о Хангыле</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Переменные и размеры. Разворот = 2 страницы (каждая 5:7) ===== */
+:root{
+  --bw:min(96vw,125vh,1000px); --bh:calc(var(--bw)*.7); --u:calc(var(--bw)/58);
+  --paper:#fbf3e4; --ink:#3a3340; --indigo:#2f3e6b; --rose:#d9788f; --gold:#c9a45c;
+  /* Текстура корейской бумаги ханджи: шум + волокна */
+  --hanji:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .35' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .3 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Телефон вертикально: «разворот» складывается столбиком — сверху картинка, снизу текст */
+@media(max-width:760px) and (orientation:portrait){:root{--bw:min(94vw,56vh);--bh:calc(var(--bw)*1.6);--u:calc(var(--bw)/27)}}
+html,body{margin:0;height:100%;overflow:hidden;background:#14152b;color:var(--ink);font-family:'PT Serif',Georgia,serif}
+svg text{font-family:'Noto Serif KR','PT Serif',serif}
+
+/* ===== Фон: три сцены Кореи плавно сменяют друг друга ===== */
+.bg{position:fixed;inset:0;opacity:0;background:center/cover;animation:fade 30s infinite}
+.bg svg{width:100%;height:100%;animation:kb 30s ease-in-out infinite alternate}
+.bg:nth-child(2){animation-delay:10s}.bg:nth-child(3){animation-delay:20s}
+@keyframes fade{0%{opacity:0}7%,33%{opacity:1}40%,100%{opacity:0}}
+@keyframes kb{to{transform:scale(1.08)}}
+#veil{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(10,8,30,.55))}
+.petal{position:fixed;top:-20px;width:13px;height:10px;background:#f6b4c4;border-radius:80% 0 80% 0;opacity:.85;pointer-events:none;animation:fall linear infinite}
+@keyframes fall{to{transform:translate(90px,110vh) rotate(540deg)}}
+
+/* ===== Книга ===== */
+#wrap{position:fixed;inset:0;display:grid;place-items:center}
+#book{position:relative;width:var(--bw);height:var(--bh);perspective:2600px;transform:translate(var(--tx,0),var(--ty,0));transition:transform 1s cubic-bezier(.6,.05,.25,1)}
+#book[data-pos=c]{--tx:-25%} #book[data-pos=b]{--tx:25%}
+/* Кожаный переплёт за разворотом */
+#book::before{content:"";position:absolute;inset:-2.6% -2.2%;z-index:-1;border-radius:1.1em;opacity:0;transition:opacity .6s;
+  background:var(--hanji),linear-gradient(135deg,#34457a,#222b50);
+  box-shadow:0 2.5em 4em rgba(0,0,0,.6),inset 0 0 0 .3em #2a3763,inset 0 0 0 .38em var(--gold)}
+#book[data-pos=m]::before{opacity:1}
+
+.pg{position:absolute;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;
+  padding:calc(var(--u)*2.5) calc(var(--u)*2.6);font-size:calc(var(--u)*1.05);
+  background:var(--hanji),var(--paper);transition:opacity .5s;
+  box-shadow:2px 1px 0 #eadcc4,4px 2px 0 #e0cfb4,6px 3px 0 #d6c3a5,12px 12px 24px rgba(0,0,0,.4)}
+.L{left:0;top:0;width:50%;height:100%;border-radius:.5em 0 0 .5em;--gd:to left;box-shadow:-2px 1px 0 #eadcc4,-4px 2px 0 #e0cfb4,-6px 3px 0 #d6c3a5,-12px 12px 24px rgba(0,0,0,.4)}
+.R{right:0;top:0;width:50%;height:100%;border-radius:0 .5em .5em 0;--gd:to right}
+@media(max-width:760px) and (orientation:portrait){
+  .L{left:0;top:0;width:100%;height:50%;--gd:to top;box-shadow:2px 2px 0 #eadcc4,4px 4px 0 #e0cfb4,12px 12px 24px rgba(0,0,0,.4)}
+  .R{left:0;right:auto;top:auto;bottom:0;width:100%;height:50%;--gd:to bottom}
+  #book[data-pos=c]{--tx:0;--ty:-25%} #book[data-pos=b]{--tx:0;--ty:25%}}
+.pg::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(var(--gd),rgba(70,40,20,.32),transparent 12%)}
+.pg::before{content:"";position:absolute;inset:calc(var(--u)*.9);border:1px solid rgba(201,164,92,.75);outline:1px solid rgba(201,164,92,.35);outline-offset:3px;pointer-events:none;z-index:3}
+.hide{opacity:0;pointer-events:none}
+.art{padding:0}.art>svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* Листающаяся страница (3D) */
+.flip{position:absolute;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.5,.05,.3,1);z-index:5;pointer-events:none}
+.flip .pg{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;backface-visibility:hidden}
+.flip .b{transform:rotateY(180deg)}
+.nx{right:0;top:0;width:50%;height:100%;transform-origin:left}.nx.go{transform:rotateY(-180deg)}
+.pv{left:0;top:0;width:50%;height:100%;transform-origin:right}.pv.go{transform:rotateY(180deg)}
+@media(max-width:760px) and (orientation:portrait){
+  .flip .b{transform:rotateX(180deg)}
+  .nx{left:0;right:auto;top:auto;bottom:0;width:100%;height:50%;transform-origin:top}.nx.go{transform:rotateX(180deg)}
+  .pv{left:0;top:0;width:100%;height:50%;transform-origin:bottom}.pv.go{transform:rotateX(-180deg)}}
+
+/* Текст и элементы */
+.t{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;scrollbar-width:thin}
+h2{font:700 calc(var(--u)*1.9)/1.2 'Noto Serif KR','PT Serif',serif;color:var(--indigo);margin:0 0 .4em}
+p{line-height:1.5;margin:.3em 0}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:.5em;margin:.6em 0}
+.chip{background:#fff8;border:1px solid #e3cfae;border-radius:.6em;text-align:center;padding:.3em 0;font-size:.85em;line-height:1.2}
+.chip b{display:block;font:700 2em 'Noto Serif KR',serif;color:var(--indigo)}
+.note{border-left:.3em solid var(--rose);background:#fbe6ebaa;padding:.4em .7em;border-radius:.4em;margin:.5em 0;font-size:.95em;line-height:1.45}
+.nav{display:flex;gap:.8em;justify-content:center;padding-top:.6em;position:relative;z-index:4}
+.btn{font:700 1em 'PT Serif',serif;border:0;border-radius:2em;padding:.65em 1.7em;cursor:pointer;background:#f4c9d2;color:var(--indigo);box-shadow:0 .18em 0 #d9919f,0 .5em .8em #0003;transition:transform .15s;position:relative;z-index:4}
+.btn.g{background:#b6dacb;box-shadow:0 .18em 0 #5a977f,0 .5em .8em #0003}
+.btn:hover{transform:translateY(-2px)}.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.intro .t{justify-content:center;text-align:center}
+.intro h1{font:700 calc(var(--u)*1.85)/1.45 'Noto Serif KR','PT Serif',serif;color:var(--indigo);margin:.4em 0}
+.cover{background:var(--hanji),linear-gradient(135deg,#3a4b82,#26305a);color:#f8ecd8;align-items:center;text-align:center;justify-content:space-between}
+.cover::before{border:2px solid var(--gold);outline-color:var(--gold)}
+.kt{font:700 calc(var(--u)*6) 'Noto Serif KR',serif;color:#fde7ec;letter-spacing:.06em;margin-top:.3em}
+.cover .btn{margin-bottom:.8em}.cover svg{width:25%;height:auto;min-height:0}
+.end{background:linear-gradient(160deg,#f6c6d2,#e6a5bb);color:var(--indigo);align-items:center;justify-content:center;text-align:center;gap:.6em}
+.end>svg{position:absolute;inset:0;width:100%;height:100%}
+.end>*:not(svg){position:relative;z-index:2}.end::before{border-color:#fff}
+.end .kt{font-size:calc(var(--u)*3.3);color:var(--indigo)}
+@media(prefers-reduced-motion:reduce){.flip,#book{transition-duration:.01s}.petal,.bg svg{animation:none}}
+</style>
+</head>
+<body>
+<div class="bg" id="bg1"></div><div class="bg" id="bg2"></div><div class="bg" id="bg3"></div>
+<div id="veil"></div>
+<div id="wrap"><div id="book"><div class="pg L hide" id="L"></div><div class="pg R" id="R"></div></div></div>
+
+<script>
+/* ============ ФОТО (по желанию) ============
+   Фон и иллюстрации ниже нарисованы в SVG, чтобы всё работало без интернета.
+   Хотите настоящие фото — вставьте 3 ссылки (дворец, ночной Сеул, сакура): */
+const PHOTOS=[]; // например ['https://.../palace.jpg','https://.../seoul.jpg','https://.../sakura.jpg']
+
+/* ============ SVG-конструктор ============ */
+let k=0;
+const sky=(w,h,a,b)=>{const id='g'+k++;return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#${id})"/>`};
+const hill=(y,c,w,a)=>`<path d="M0 ${y}Q${w/4} ${y-a} ${w/2} ${y}T${w} ${y}V999H0Z" fill="${c}"/>`;
+/* ветка сакуры */
+const sak=(x0,y0,x1,y1,n,sp)=>{let s=`<path d="M${x0} ${y0}Q${(x0+x1)/2} ${(y0+y1)/2+8} ${x1} ${y1}" stroke="#6b4a3a" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  for(let i=0;i<=n;i++){const t=i/n,x=x0+(x1-x0)*t+Math.sin(i*7)*sp,y=y0+(y1-y0)*t+Math.cos(i*5)*sp+4,r=1.8+i%3*.7;
+  s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="#f6b4c4"/><circle cx="${x}" cy="${y}" r="${r*.35}" fill="#fff0f4"/>`}return s};
+/* ханок: дом с изогнутой черепичной крышей */
+const hanok=(x,y,s)=>`<g transform="translate(${x} ${y}) scale(${s})"><rect x="-22" y="-4" width="44" height="26" fill="#f6e7d3"/><path d="M-19 3h12M-19 9h12M-19 15h12M7 3h12M7 9h12M7 15h12" stroke="#9b6a4a" stroke-width=".7"/><g fill="#b8473f"><rect x="-22" y="-4" width="3" height="26"/><rect x="-8" y="-4" width="3" height="26"/><rect x="5" y="-4" width="3" height="26"/><rect x="19" y="-4" width="3" height="26"/></g><path d="M-42-2Q-20-4-14-20Q0-26 14-20Q20-4 42-2Q22 8 0 8Q-22 8-42-2Z" fill="#33426f"/><path d="M-30 1Q0 10 30 1" stroke="#c9a45c" stroke-width=".8" fill="none"/></g>`;
+/* город ночью: [x, верх, ширина] */
+const city=(a,b)=>a.map(([x,t,w])=>{let s=`<rect x="${x}" y="${t}" width="${w}" height="${b-t}" fill="#1b1c44"/>`;for(let y=t+3;y<b-3;y+=5)for(let q=x+1.5;q<x+w-2;q+=3.5)if(((q*7+y*3)|0)%3)s+=`<rect x="${q}" y="${y}" width="1.6" height="2" fill="#ffd98a"/>`;return s}).join('');
+const stars=n=>Array.from({length:n},(_,i)=>`<circle cx="${(i*53)%160}" cy="${(i*29)%40}" r=".35" fill="#fff"/>`).join('');
+const tower=x=>`<g fill="#101230"><rect x="${x-1}" y="52" width="2" height="30"/><ellipse cx="${x}" cy="62" rx="4.5" ry="2.6"/><rect x="${x-.3}" y="42" width=".6" height="10"/></g>`;
+const lamps=a=>a.map(x=>`<path d="M${x} 0V9" stroke="#caa" stroke-width=".3"/><circle cx="${x}" cy="11" r="2.6" fill="#ff8a70"/><circle cx="${x}" cy="11" r="5" fill="#ff8a70" opacity=".25"/>`).join('');
+const S=(vb,b)=>`<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice">${b}</svg>`;
+
+/* Фоны 160x90 */
+const bgs=[
+ S('0 0 160 90',sky(160,90,'#40407a','#f3a98f')+`<circle cx="105" cy="56" r="11" fill="#ffd7a1"/>`+hill(58,'#76679f',160,7)+hill(66,'#5a4f8c',160,5)+hanok(22,70,.8)+hanok(138,70,.8)+hanok(80,68,1.35)+hill(76,'#2c2f5e',160,3)+sak(0,12,60,34,16,5)+sak(160,8,110,30,12,4)),
+ S('0 0 160 90',sky(160,90,'#0b0e2e','#4b3468')+stars(26)+`<circle cx="118" cy="22" r="8" fill="#fff1c9"/>`+hill(70,'#16193d',160,6)+tower(38)+city([[0,72,12],[12,64,10],[22,74,9],[60,68,11],[71,60,9],[80,72,12],[92,66,10],[102,74,11],[113,62,12],[125,70,10],[135,64,11],[146,72,14]],90)+lamps([20,60,100,140])),
+ S('0 0 160 90',sky(160,90,'#fbd9e4','#d8ecea')+hill(56,'#c3d9d0',160,6)+hill(64,'#9cc3b2',160,5)+hanok(118,62,.7)+hill(72,'#7fae9b',160,4)+sak(-5,26,80,6,26,6)+sak(165,34,100,8,22,5)+sak(60,0,130,18,14,4))
+];
+bgs.forEach((s,i)=>{const e=document.getElementById('bg'+(i+1));if(PHOTOS[i]){e.style.backgroundImage=`url(${PHOTOS[i]})`}else e.innerHTML=s});
+
+/* Иллюстрации левых страниц 100x140 */
+const V='0 0 100 140';
+const art=[
+ S(V,sky(100,140,'#c9b6e4','#fde9d8')+`<circle cx="70" cy="50" r="14" fill="#ffd6a0"/>`+hill(88,'#b9a5d6',100,8)+hill(100,'#8fb5a8',100,6)+hanok(50,98,1.05)+hill(114,'#5d8a79',100,4)+sak(100,8,36,30,14,4)+`<text x="50" y="132" text-anchor="middle" font-size="9" fill="#fff">대한민국</text>`),
+ S(V,sky(100,140,'#cfe8e0','#f9efe0')+`<rect x="14" y="24" width="72" height="92" rx="3" fill="#fbf1dc" stroke="#b8944f"/><rect x="9" y="19" width="82" height="8" rx="4" fill="#a8603f"/><rect x="9" y="113" width="82" height="8" rx="4" fill="#a8603f"/><text x="50" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="#2f3e6b">한글</text><text x="50" y="86" text-anchor="middle" font-size="10" fill="#8a6a3a">1443</text><text x="50" y="100" text-anchor="middle" font-size="5.5" fill="#5b4a3a">король Седжон Великий</text>`),
+ S(V,sky(100,140,'#d8ecf5','#f9efe0')+`<text x="50" y="18" text-anchor="middle" font-size="8" fill="#2f3e6b">하늘 · 땅 · 사람</text><circle cx="26" cy="42" r="8" fill="#e8a24d"/><rect x="14" y="76" width="24" height="5" rx="2" fill="#5a977f"/><rect x="24" y="100" width="5" height="22" rx="2" fill="#d9788f"/><g font-size="6.5" fill="#3a3340"><text x="46" y="44">точка — небо</text><text x="46" y="80">черта — земля</text><text x="46" y="114">палочка — человек</text></g>`),
+ S(V,sky(100,140,'#fde4ea','#f9efe0')+[['ㄱ','крючок'],['ㄴ','ступенька'],['ㅁ','окошко'],['ㅅ','шалаш'],['ㅇ','колечко']].map(([c,w],i)=>`<rect x="10" y="${12+i*25}" width="80" height="21" rx="5" fill="#fff" opacity=".8" stroke="#e3cfae"/><text x="30" y="${29+i*25}" text-anchor="middle" font-size="16" font-weight="700" fill="#2f3e6b">${c}</text><text x="46" y="${27+i*25}" font-size="7" fill="#3a3340">${w}</text>`).join('')),
+ S(V,sky(100,140,'#dff0e6','#fbf3e4')+[[['ㅁ','ㅏ','마','ма'],22],[['ㅅ','ㅗ','소','со'],78]].map(([a,y])=>[6,38,70].map((x,i)=>`<rect x="${x}" y="${y}" width="24" height="30" rx="3" fill="#fff" stroke="${i<2?'#a9cfc0':'#e49bab'}" stroke-width="1.2" stroke-dasharray="${i<2?'2 1.5':'0'}"/><text x="${x+12}" y="${y+20}" text-anchor="middle" font-size="${i<2?17:20}" font-weight="700" fill="#2f3e6b">${a[i]}</text>`).join('')+`<text x="33" y="${y+19}" font-size="10" fill="#c9a45c">+</text><text x="65" y="${y+19}" font-size="10" fill="#c9a45c">=</text><text x="82" y="${y+40}" text-anchor="middle" font-size="7" fill="#3a3340">«${a[3]}»</text>`).join('')),
+ S(V,sky(160,140,'#0f1233','#5a3a6e')+stars(30)+`<circle cx="74" cy="32" r="10" fill="#fff1c9"/>`+hill(92,'#16193d',100,8)+tower(28).replace('y="52"','y="72"').replace('y="62"','y="82"').replace('y="42"','y="62"')+city([[0,112,10],[10,104,9],[19,116,8],[27,108,10],[60,106,9],[69,114,10],[79,102,9],[88,110,12]],140)+lamps([20,50,80])+`<text x="50" y="132" text-anchor="middle" font-size="8" fill="#fff">서울</text>`)
+];
+
+/* ============ Страницы ============ */
+const TG=`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="#e49bab"/><path d="M50 12a38 38 0 0 0 0 76a19 19 0 0 0 0-38a19 19 0 0 1 0-38z" fill="#4a68b0"/><circle cx="50" cy="31" r="9.5" fill="#e49bab"/><circle cx="50" cy="69" r="9.5" fill="#4a68b0"/></svg>`;
+const nav=(back,lbl='ДАЛЕЕ')=>`<div class="nav">${back?'<button class="btn g" data-a="p">НАЗАД</button>':''}<button class="btn" data-a="n">${lbl}</button></div>`;
+const T=(h,body)=>['txt',`<div class="t"><h2>${h}</h2>${body}</div>${nav(1)}`];
+const chips=a=>`<div class="chips">${a.map(([c,t])=>`<div class="chip"><b>${c}</b>${t}</div>`).join('')}</div>`;
+const A=i=>['art',art[i]];
+
+const spreads=[
+ {l:null,r:['cover',`<div><div class="kt">한글</div><p>Книга-путешествие<br>в мир Кореи</p></div>${TG}<button class="btn" data-a="n">Открой меня</button>`]},
+ {l:A(0),r:['txt intro',`<div class="t"><div style="font-size:3em">🌸</div><h1>С ЭТОЙ КНИГОЙ НАЧИНАЕТСЯ ТВОЙ ПУТЬ В МИР КОРЕИ И В ЕГО КУЛЬТУРЕ</h1></div>${nav(0,'Далее')}`]},
+ {l:A(1),r:T('Что такое хангыль?',`<p>Хангыль — это корейский алфавит. Его придумал король Седжон Великий в 1443 году.</p><p>Раньше читать умели только учёные: знаков было очень много. Король хотел, чтобы буквы мог выучить каждый — даже ребёнок!</p><p>В хангыле всего <b>24 основные буквы</b>: 14 согласных и 10 гласных.</p><div class="note">🎉 Каждый год 9 октября в Корее отмечают День хангыля.</div>`)},
+ {l:A(2),r:T('Гласные: небо, земля, человек',`<p>Гласные сделаны из трёх знаков: точка — небо, черта — земля, палочка — человек. Добавим короткую черточку — получится новая гласная.</p>${chips([['ㅏ','«а»'],['ㅓ','«о» (ё)'],['ㅗ','«о»'],['ㅜ','«у»'],['ㅡ','«ы»'],['ㅣ','«и»']])}<div class="note">💡 Черточка вправо — ㅏ, вверх — ㅗ, вниз — ㅜ.</div>`)},
+ {l:A(3),r:T('Согласные — рисунки рта',`<p>Форма согласной показывает, как стоят язык и губы. ㄴ — язык у зубов, ㅁ — губы закрыты, как окошко.</p>${chips([['ㄱ','«г/к»'],['ㄴ','«н»'],['ㅁ','«м»'],['ㅅ','«с»'],['ㅇ','«нг» или тишина'],['ㅎ','«х»']])}<div class="note">🧠 ㅇ в начале слога молчит: она просто держит место для гласной.</div>`)},
+ {l:A(4),r:T('Как собрать слог',`<p>Буквы не идут в строчку, а складываются в <b>квадратик-слог</b>, как кирпичики. Читаем сверху вниз и слева направо.</p><p>Согласная — первая. Гласная стоит рядом (если палочка) или под ней (если лежит).</p><p><b>마</b> = ㅁ + ㅏ = «ма»<br><b>소</b> = ㅅ + ㅗ = «со»</p><div class="note">✨ Попробуй сам: 나 — «на», 우 — «у», 아이 — «ай» (ребёнок).</div>`)},
+ {l:A(5),r:T('Немного о Корее',`<p><b>안녕하세요</b> (аннёнхасэё) — «здравствуйте», с лёгким поклоном.</p><p><b>감사합니다</b> (камсахамнида) — «спасибо».</p><p><b>Кимчи</b> — острая квашеная капуста, её едят почти каждый день.</p><p><b>Ханбок</b> — яркий традиционный наряд для праздников.</p><p>Дома обувь снимают, а старшим подают вещи двумя руками.</p><div class="note">🎶 Теперь ты сможешь прочитать названия K-pop групп!</div>`).map((x,i)=>i?x.replace('ДАЛЕЕ','ФИНАЛ'):x)},
+ {l:['end',`<svg viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice"><defs><pattern id="sg" width="20" height="10" patternUnits="userSpaceOnUse"><g fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".6"><circle cx="10" cy="10" r="10"/><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3"/><circle cx="0" cy="0" r="10"/><circle cx="20" cy="0" r="10"/></g></pattern></defs><rect width="100" height="140" fill="url(#sg)"/></svg><div style="font-size:3em">🌸</div><div class="kt">감사합니다</div><p>Ты сделал первый шаг: буквы Кореи больше не тайна.<br>Читай, пиши и путешествуй!<br><i>다시 만나요 — до новых встреч</i></p><button class="btn" data-a="r">Начать сначала</button>`],r:null}
+];
+
+/* ============ Логика книги ============ */
+const book=document.getElementById('book'),L=document.getElementById('L'),R=document.getElementById('R');
+let i=0,busy=false;
+const pos=s=>!s.l?'c':!s.r?'b':'m';
+function setPage(el,side,p){if(p){el.className=`pg ${side} ${p[0]}`;el.innerHTML=p[1]}else el.classList.add('hide')}
+function show(n){i=n;setPage(L,'L',spreads[n].l);setPage(R,'R',spreads[n].r);book.dataset.pos=pos(spreads[n])}
+function go(d){
+  const n=i+d;if(busy||n<0||n>=spreads.length)return;busy=true;
+  const o=spreads[i],w=spreads[n],nx=d>0,fl=document.createElement('div');
+  fl.className='flip '+(nx?'nx':'pv');
+  /* лицо листа — старая страница, оборот — новая страница с другой стороны разворота */
+  fl.innerHTML=`<div class="pg ${nx?'R':'L'} ${(nx?o.r:o.l)[0]} f">${(nx?o.r:o.l)[1]}</div><div class="pg ${nx?'L':'R'} ${(nx?w.l:w.r)[0]} b">${(nx?w.l:w.r)[1]}</div>`;
+  book.append(fl);
+  nx?setPage(R,'R',w.r):setPage(L,'L',w.l);   /* страница под листом */
+  book.dataset.pos=pos(w);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>fl.classList.add('go')));
+  setTimeout(()=>{setPage(L,'L',w.l);setPage(R,'R',w.r);fl.remove();i=n;busy=false},1050);
+}
+book.addEventListener('click',e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(a==='n')go(1);if(a==='p')go(-1);if(a==='r'&&!busy)show(0)});
+addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1)});
+let x0=null;
+addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+addEventListener('touchend',e=>{if(x0!==null){const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>70)go(d<0?1:-1);x0=null}});
+
+/* лепестки сакуры */
+for(let j=0;j<14;j++){const p=document.createElement('i');p.className='petal';p.style.cssText=`left:${Math.random()*100}vw;animation-duration:${9+Math.random()*9}s;animation-delay:-${Math.random()*15}s`;document.body.append(p)}
+show(0);
+</script>
+</body>
+</html>
